@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Safari Friends — Learn Animal Names</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#FDEBD3;
+    --sky-bottom:#FBCB8B;
+    --hill-1:#E3B23C;
+    --hill-2:#C9932A;
+    --hill-3:#AD7B22;
+    --teal:#2A7F76;
+    --teal-dark:#1E5E57;
+    --ink:#3B2E1F;
+    --card:#FFFFFF;
+    --card-edge:#EFE0C3;
+    --correct:#2A7F76;
+    --wrong:#C1502E;
+    font-family:'Nunito', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 60%, var(--sky-bottom) 100%);
+    color:var(--ink);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  .sun{
+    position:absolute; top:-50px; left:-40px; width:190px; height:190px;
+    background: radial-gradient(circle at 40% 35%, #FFF3D6, #FFD873 70%);
+    border-radius:50%;
+    box-shadow: 0 0 0 12px rgba(255,216,115,0.2);
+    z-index:0;
+  }
+  .bird{
+    position:absolute; z-index:0; opacity:0.55;
+  }
+  header{
+    position:relative; z-index:1;
+    padding: 44px 24px 18px;
+    text-align:center;
+  }
+  h1{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size: clamp(2.2rem, 6vw, 3.4rem);
+    margin:0;
+    color:var(--ink);
+  }
+  h1 span{ color: var(--teal-dark); }
+  .subtitle{
+    font-size:1.05rem;
+    max-width:480px;
+    margin:10px auto 0;
+    color:#5A4A32;
+    font-weight:700;
+  }
+  nav.modes{
+    position:relative; z-index:1;
+    display:flex; justify-content:center; gap:14px;
+    margin: 22px 0 6px;
+    flex-wrap:wrap;
+  }
+  .mode-btn{
+    font-family:'Baloo 2', sans-serif;
+    font-size:1.05rem; font-weight:600;
+    padding:12px 26px;
+    border-radius:999px;
+    border:3px solid var(--teal-dark);
+    background:#fff;
+    color:var(--teal-dark);
+    cursor:pointer;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .mode-btn:hover{ transform: translateY(-2px); }
+  .mode-btn.active{
+    background:var(--teal-dark);
+    color:#fff;
+  }
+  main{
+    position:relative; z-index:1;
+    max-width:980px;
+    margin:0 auto;
+    padding: 18px 20px 40px;
+  }
+
+  /* ---- Explore grid ---- */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap:18px;
+    margin-top: 20px;
+  }
+  .animal-card{
+    background:var(--card);
+    border:2px solid var(--card-edge);
+    border-radius:20px;
+    padding:14px 10px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .animal-card:nth-child(odd){ transform: rotate(-1.2deg); }
+  .animal-card:nth-child(even){ transform: rotate(1.2deg); }
+  .animal-card:hover{
+    transform: translateY(-4px) rotate(0deg) scale(1.03);
+    box-shadow: 0 10px 20px rgba(59,46,31,0.14);
+  }
+  .animal-card svg{ width:88px; height:88px; }
+  .animal-card .name{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600;
+    font-size:1.05rem;
+    margin-top:6px;
+  }
+
+  /* ---- Detail panel ---- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(59,46,31,0.45);
+    display:none; align-items:center; justify-content:center;
+    z-index:10; padding:20px;
+  }
+  .overlay.open{ display:flex; }
+  .detail-card{
+    background:#fff; border-radius:28px; padding:32px 28px 28px;
+    max-width:360px; width:100%; text-align:center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    position:relative;
+  }
+  .detail-card svg{ width:150px; height:150px; }
+  .detail-card .name{
+    font-family:'Baloo 2', sans-serif;
+    font-size:1.8rem; font-weight:700; margin:6px 0 2px;
+  }
+  .detail-card .fact{
+    font-size:1rem; color:#5A4A32; margin: 10px 0 16px; line-height:1.4;
+  }
+  .btn-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .say-btn, .sound-btn{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600; font-size:0.95rem;
+    border:none; border-radius:999px;
+    padding:12px 20px; cursor:pointer;
+  }
+  .say-btn{ background:#FFD873; box-shadow: 0 4px 0 #E0B94D; }
+  .sound-btn{ background:var(--teal); color:#fff; box-shadow: 0 4px 0 var(--teal-dark); }
+  .say-btn:active, .sound-btn:active{ transform: translateY(2px); box-shadow:none; }
+  .close-btn{
+    position:absolute; top:14px; right:16px;
+    background:none; border:none; font-size:1.4rem; cursor:pointer;
+    color:#B0A48A;
+    font-family:'Nunito', sans-serif;
+  }
+
+  /* ---- Quiz ---- */
+  .quiz-wrap{ text-align:center; margin-top:10px; }
+  .quiz-progress{
+    font-weight:800; color:#5A4A32; margin-bottom:6px;
+  }
+  .quiz-stage{
+    background:var(--card);
+    border:2px solid var(--card-edge);
+    border-radius:26px;
+    padding:26px 20px;
+    max-width:380px;
+    margin: 12px auto 22px;
+  }
+  .quiz-stage svg{ width:150px; height:150px; }
+  .quiz-question{
+    font-family:'Baloo 2', sans-serif;
+    font-size:1.15rem; font-weight:600; margin-top:8px;
+  }
+  .answers{
+    display:grid; grid-template-columns: 1fr 1fr;
+    gap:12px; max-width:420px; margin:0 auto;
+  }
+  .answer-btn{
+    font-family:'Baloo 2', sans-serif;
+    font-size:1rem; font-weight:600;
+    padding:14px 10px;
+    border-radius:16px;
+    border:2.5px solid var(--card-edge);
+    background:#fff;
+    cursor:pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+  }
+  .answer-btn:hover{ transform: translateY(-2px); }
+  .answer-btn.correct{ background:#E1F0EE; border-color:var(--correct); color:var(--teal-dark); }
+  .answer-btn.wrong{ background:#FBE4DC; border-color:var(--wrong); color:#8F3A1F; }
+  .answer-btn[disabled]{ cursor:default; }
+  .quiz-feedback{
+    min-height:28px; margin-top:14px; font-weight:800;
+    font-family:'Baloo 2', sans-serif;
+  }
+  .quiz-feedback.correct{ color:var(--teal-dark); }
+  .quiz-feedback.wrong{ color:var(--wrong); }
+  .quiz-done{ max-width:380px; margin:0 auto; }
+  .quiz-done .score{
+    font-family:'Baloo 2', sans-serif; font-size:2.4rem; font-weight:700;
+    color:var(--teal-dark);
+  }
+  .restart-btn{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600; font-size:1rem;
+    margin-top:16px;
+    background:var(--teal-dark); color:#fff; border:none; border-radius:999px;
+    padding:12px 28px; cursor:pointer;
+  }
+  .hidden{ display:none !important; }
+  .hills{
+    position:relative; z-index:1; height:90px; margin-top:10px; overflow:hidden;
+  }
+  .hills .h1,.hills .h2,.hills .h3{
+    position:absolute; bottom:-30px; width:60%; height:120px; border-radius:50%;
+  }
+  .hills .h1{ left:-10%; background:var(--hill-3); }
+  .hills .h2{ left:25%; background:var(--hill-2); width:70%; }
+  .hills .h3{ left:55%; background:var(--hill-1); width:60%; }
+</style>
+</head>
+<body>
+
+<div class="sun"></div>
+<svg class="bird" style="top:60px; left:20%;" width="34" height="16" viewBox="0 0 34 16"><path d="M2 10 Q9 0 17 10 Q25 0 32 10" stroke="#3B2E1F" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+<svg class="bird" style="top:90px; left:70%;" width="26" height="12" viewBox="0 0 34 16"><path d="M2 10 Q9 0 17 10 Q25 0 32 10" stroke="#3B2E1F" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+
+<header>
+  <h1>Welcome to <span>Safari Friends</span></h1>
+  <p class="subtitle">Tap an animal to meet it, hear its name, and hear the sound it makes!</p>
+</header>
+
+<nav class="modes">
+  <button class="mode-btn active" id="btn-explore">🦁 Explore</button>
+  <button class="mode-btn" id="btn-quiz">🎯 Quiz Time</button>
+</nav>
+
+<main>
+  <section id="explore-section">
+    <div class="grid" id="animal-grid"></div>
+  </section>
+
+  <section id="quiz-section" class="hidden">
+    <div class="quiz-wrap">
+      <div class="quiz-progress" id="quiz-progress"></div>
+
+      <div id="quiz-active">
+        <div class="quiz-stage">
+          <div id="quiz-illustration"></div>
+          <div class="quiz-question">What's this animal called?</div>
+        </div>
+        <div class="answers" id="quiz-answers"></div>
+        <div class="quiz-feedback" id="quiz-feedback"></div>
+      </div>
+
+      <div id="quiz-done" class="quiz-done hidden">
+        <div class="score" id="quiz-score"></div>
+        <div id="quiz-done-msg"></div>
+        <button class="restart-btn" id="quiz-restart">Play again</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="hills"><div class="h1"></div><div class="h2"></div><div class="h3"></div></div>
+
+<div class="overlay" id="overlay">
+  <div class="detail-card">
+    <button class="close-btn" id="close-detail">✕</button>
+    <div id="detail-illustration"></div>
+    <div class="name" id="detail-name"></div>
+    <div class="fact" id="detail-fact"></div>
+    <div class="btn-row">
+      <button class="say-btn" id="say-btn">🔊 Say name</button>
+      <button class="sound-btn" id="sound-btn">🐾 Animal sound</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- Animal data ----------
+const ANIMALS = [
+  { id:'lion', name:'Lion', sound:'Roar!', fact:"A lion's roar can be heard from up to five miles away.",
+    svg:`<svg viewBox="0 0 200 200">
+      <circle cx="100" cy="105" r="55" fill="#E3B23C" stroke="#3B2E1F" stroke-width="5"/>
+      <g fill="#C9932A" stroke="#3B2E1F" stroke-width="4">
+        <ellipse cx="100" cy="60" rx="14" ry="20"/><ellipse cx="140" cy="75" rx="14" ry="20" transform="rotate(45 140 75)"/>
+        <ellipse cx="150" cy="105" rx="14" ry="20" transform="rotate(90 150 105)"/><ellipse cx="140" cy="140" rx="14" ry="20" transform="rotate(135 140 140)"/>
+        <ellipse cx="100" cy="155" rx="14" ry="20" transform="rotate(180 100 155)"/><ellipse cx="60" cy="140" rx="14" ry="20" transform="rotate(-135 60 140)"/>
+        <ellipse cx="50" cy="105" rx="14" ry="20" transform="rotate(-90 50 105)"/><ellipse cx="60" cy="75" rx="14" ry="20" transform="rotate(-45 60 75)"/>
+      </g>
+      <circle cx="100" cy="105" r="42" fill="#F4C868" stroke="#3B2E1F" stroke-width="4"/>
+      <circle cx="84" cy="98" r="5" fill="#3B2E1F"/><circle cx="116" cy="98" r="5" fill="#3B2E1F"/>
+      <ellipse cx="100" cy="120" rx="8" ry="6" fill="#3B2E1F"/></svg>` },
+
+  { id:'elephant', name:'Elephant', sound:'Trumpet!', fact:'Elephants use their trunks like a hand, with over 40,000 muscles in it.',
+    svg:`<svg viewBox="0 0 200 200">
+      <ellipse cx="45" cy="95" rx="35" ry="40" fill="#A9A9AD" stroke="#3B2E1F" stroke-width="5"/>
+      <ellipse cx="105" cy="100" rx="55" ry="50" fill="#BDBDC2" stroke="#3B2E1F" stroke-width="5"/>
+      <path d="M85 130 Q70 170 90 175 Q100 176 95 150" fill="#BDBDC2" stroke="#3B2E1F" stroke-width="5"/>
+      <circle cx="90" cy="85" r="6" fill="#3B2E1F"/><circle cx="130" cy="85" r="6" fill="#3B2E1F"/></svg>` },
+
+  { id:'giraffe', name:'Giraffe', sound:'Hmmm...', fact:'Giraffes are the tallest land animals and have the same number of neck bones as us: seven.',
+    svg:`<svg viewBox="0 0 200 200">
+      <rect x="88" y="70" width="24" height="90" rx="10" fill="#F0C879" stroke="#3B2E1F" stroke-width="5"/>
+      <ellipse cx="100" cy="55" rx="26" ry="24" fill="#F0C879" stroke="#3B2E1F" stroke-width="5"/>
+      <circle cx="88" cy="30" r="6" fill="#C9932A" stroke="#3B2E1F" stroke-width="3"/><circle cx="112" cy="30" r="6" fill="#C9932A" stroke="#3B2E1F" stroke-width="3"/>
+      <g fill="#C9932A"><rect x="80" y="90" width="14" height="14" rx="4"/><rect x="105" y="120" width="16" height="16" rx="4"/><rect x="82" y="140" width="14" height="14" rx="4"/></g>
+      <circle cx="92" cy="50" r="4" fill="#3B2E1F"/></svg>` },
+
+  { id:'zebra', name:'Zebra', sound:'Neigh!', fact:'No two zebras have exactly the same stripe pattern — like a fingerprint.',
+    svg:`<svg viewBox="0 0 200 200">
+      <ellipse cx="100" cy="115" rx="60" ry="42" fill="#F5F1E8" stroke="#3B2E1F" stroke-width="5"/>
+      <ellipse cx="150" cy="90" rx="24" ry="22" fill="#F5F1E8" stroke="#3B2E1F" stroke-width="5"/>
+      <g stroke="#3B2E1F" stroke-width="6" stroke-linecap="round">
+        <path d="M60 90 L70 140"/><path d="M80 85 L90 145"/><path d="M100 85 L108 148"/><path d="M120 90 L128 145"/><path d="M140 100 L146 140"/>
+        <path d="M150 78 L155 100"/><path d="M158 88 L162 105"/>
+      </g><circle cx="158" cy="85" r="4" fill="#3B2E1F"/></svg>` },
+
+  { id:'monkey', name:'Monkey', sound:'Ooh ooh ah ah!', fact:'Monkeys use their long tails almost like a fifth hand to grip branches.',
+    svg:`<svg viewBox="0 0 200 200">
+      <circle cx="100" cy="105" r="55" fill="#8B5E3C" stroke="#3B2E1F" stroke-width="5"/>
+      <circle cx="55" cy="85" r="20" fill="#8B5E3C" stroke="#3B2E1F" stroke-width="5"/>
+      <circle cx="145" cy="85" r="20" fill="#8B5E3C" stroke="#3B2E1F" stroke-width="5"/>
+      <ellipse cx="100" cy="115" rx="35" ry="30" fill="#EAD2A6" stroke="#3B2E1F" stroke-width="4"/>
+      <circle cx="86" cy="105" r="5" fill="#3B2E1F"/><circle cx="114" cy="105" r="5" fill="#3B2E1F"/>
+      <path d="M90 128 Q100 135 110 128" stroke="#3B2E1F" stroke-width="4" fill="none" stroke-linecap="round"/></svg>` },
+
+  { id:'owl', name:'Owl', sound:'Hoo hoo!', fact:'Owls can turn their heads about 270 degrees to look almost all the way around.',
+    svg:`<svg viewBox="0 0 200 200">
+      <path d="M75 50 L85 75 M125 50 L115 75" stroke="#8B5E3C" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <ellipse cx="100" cy="115" rx="55" ry="60" fill="#A9793F" stroke="#3B2E1F" stroke-width="5"/>
+      <circle cx="80" cy="100" r="24" fill="#FFF6E6" stroke="#3B2E1F" stroke-width="4"/><circle cx="120" cy="100" r="24" fill="#FFF6E6" stroke="#3B2E1F" stroke-width="4"/>
+      <circle cx="80" cy="100" r="9" fill="#3B2E1F"/><circle cx="120" cy="100" r="9" fill="#3B2E1F"/>
+      <path d="M100 112 L92 128 L108 128 Z" fill="#F4903A" stroke="#3B2E1F" stroke-width="3" stroke-linejoin="round"/></svg>` },
+
+  { id:'penguin', name:'Penguin', sound:'Honk!', fact:"Penguins can't fly, but they \"fly\" through water instead, swimming very fast.",
+    svg:`<svg viewBox="0 0 200 200">
+      <ellipse cx="100" cy="110" rx="48" ry="65" fill="#2E2A2E" stroke="#3B2E1F" stroke-width="5"/>
+      <ellipse cx="100" cy="120" rx="30" ry="45" fill="#F5F1E8" stroke="#3B2E1F" stroke-width="3"/>
+      <path d="M85 90 L75 100 L88 100 Z M115 90 L125 100 L112 100 Z" fill="#F4903A" stroke="#3B2E1F" stroke-width="3"/>
+      <circle cx="90" cy="80" r="4" fill="#3B2E1F"/><circle cx="110" cy="80" r="4" fill="#3B2E1F"/>
+      <ellipse cx="100" cy="88" rx="6" ry="4" fill="#F4903A"/></svg>` },
+
+  { id:'frog', name:'Frog', sound:'Ribbit!', fact:'Frogs breathe partly through their skin, which needs to stay moist.',
+    svg:`<svg viewBox="0 0 200 200">
+      <ellipse cx="100" cy="125" rx="55" ry="42" fill="#7CB342" stroke="#3B2E1F" stroke-width="5"/>
+      <circle cx="70" cy="80" r="20" fill="#7CB342" stroke="#3B2E1F" stroke-width="5"/><circle cx="130" cy="80" r="20" fill="#7CB342" stroke="#3B2E1F" stroke-width="5"/>
+      <circle cx="70" cy="78" r="9" fill="#3B2E1F"/><circle cx="130" cy="78" r="9" fill="#3B2E1F"/>
+      <path d="M75 130 Q100 145 125 130" stroke="#3B2E1F" stroke-width="4" fill="none" stroke-linecap="round"/></svg>` },
+
+  { id:'fish', name:'Fish', sound:'Blub blub!', fact:'Most fish breathe underwater using gills instead of lungs.',
+    svg:`<svg viewBox="0 0 200 200">
+      <ellipse cx="95" cy="105" rx="55" ry="38" fill="#4E9FD1" stroke="#3B2E1F" stroke-width="5"/>
+      <path d="M150 105 L180 80 L180 130 Z" fill="#4E9FD1" stroke="#3B2E1F" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M85 75 L95 55 L105 75 Z" fill="#4E9FD1" stroke="#3B2E1F" stroke-width="4" stroke-linejoin="round"/>
+      <circle cx="60" cy="98" r="6" fill="#3B2E1F"/>
+      <path d="M75 105 Q95 100 115 108" stroke="#2E7CA8" stroke-width="4" fill="none"/></svg>` },
+
+  { id:'turtle', name:'Turtle', sound:'...', fact:'Some turtles can live over 100 years!',
+    svg:`<svg viewBox="0 0 200 200">
+      <ellipse cx="100" cy="115" rx="60" ry="45" fill="#7CB342" stroke="#3B2E1F" stroke-width="5"/>
+      <path d="M100 75 L70 100 L100 115 L130 100 Z M70 100 L60 130 L100 145 L100 115 Z M130 100 L140 130 L100 145 L100 115 Z" fill="#5A9034" stroke="#3B2E1F" stroke-width="3" stroke-linejoin="round"/>
+      <circle cx="45" cy="105" r="16" fill="#7CB342" stroke="#3B2E1F" stroke-width="4"/>
+      <circle cx="38" cy="100" r="4" fill="#3B2E1F"/></svg>` },
+
+  { id:'rabbit', name:'Rabbit', sound:'Thump thump!', fact:'Rabbits thump their back feet on the ground to warn other rabbits of danger.',
+    svg:`<svg viewBox="0 0 200 200">
+      <ellipse cx="100" cy="135" rx="45" ry="35" fill="#F5F1E8" stroke="#3B2E1F" stroke-width="5"/>
+      <circle cx="100" cy="90" r="32" fill="#F5F1E8" stroke="#3B2E1F" stroke-width="5"/>
+      <ellipse cx="82" cy="45" rx="10" ry="35" fill="#F5F1E8" stroke="#3B2E1F" stroke-width="5"/>
+      <ellipse cx="118" cy="45" rx="10" ry="35" fill="#F5F1E8" stroke="#3B2E1F" stroke-width="5"/>
+      <circle cx="88" cy="88" r="5" fill="#3B2E1F"/><circle cx="112" cy="88" r="5" fill="#3B2E1F"/>
+      <ellipse cx="100" cy="100" rx="6" ry="4" fill="#E88E9E"/></svg>` },
+
+  { id:'fox', name:'Fox', sound:'Ring-ding-ding!', fact:'Foxes have excellent hearing and can hear small animals moving underground.',
+    svg:`<svg viewBox="0 0 200 200">
+      <path d="M65 60 L85 90 L55 95 Z" fill="#E3763C" stroke="#3B2E1F" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M135 60 L115 90 L145 95 Z" fill="#E3763C" stroke="#3B2E1F" stroke-width="5" stroke-linejoin="round"/>
+      <ellipse cx="100" cy="110" rx="48" ry="42" fill="#E3763C" stroke="#3B2E1F" stroke-width="5"/>
+      <path d="M100 120 L80 140 Q100 150 120 140 Z" fill="#F5F1E8" stroke="#3B2E1F" stroke-width="3"/>
+      <circle cx="82" cy="102" r="5" fill="#3B2E1F"/><circle cx="118" cy="102" r="5" fill="#3B2E1F"/>
+      <path d="M100 118 L94 126 L106 126 Z" fill="#3B2E1F"/></svg>` },
+];
+
+// ---------- Explore grid ----------
+const grid = document.getElementById('animal-grid');
+ANIMALS.forEach(a=>{
+  const card = document.createElement('div');
+  card.className = 'animal-card';
+  card.innerHTML = `${a.svg}<div class="name">${a.name}</div>`;
+  card.addEventListener('click', ()=> openDetail(a));
+  grid.appendChild(card);
+});
+
+const overlay = document.getElementById('overlay');
+const detailIllustration = document.getElementById('detail-illustration');
+const detailName = document.getElementById('detail-name');
+const detailFact = document.getElementById('detail-fact');
+let currentAnimal = null;
+
+function openDetail(a){
+  currentAnimal = a;
+  detailIllustration.innerHTML = a.svg;
+  detailName.textContent = a.name;
+  detailFact.textContent = a.fact;
+  overlay.classList.add('open');
+}
+document.getElementById('close-detail').addEventListener('click', ()=> overlay.classList.remove('open'));
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+
+document.getElementById('say-btn').addEventListener('click', ()=>{
+  if(!currentAnimal) return;
+  speak(currentAnimal.name);
+});
+document.getElementById('sound-btn').addEventListener('click', ()=>{
+  if(!currentAnimal) return;
+  speak(currentAnimal.sound);
+});
+
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 0.85;
+  utter.pitch = 1.1;
+  utter.lang = 'en-US';
+  window.speechSynthesis.speak(utter);
+}
+
+// ---------- Mode switching ----------
+const btnExplore = document.getElementById('btn-explore');
+const btnQuiz = document.getElementById('btn-quiz');
+const exploreSection = document.getElementById('explore-section');
+const quizSection = document.getElementById('quiz-section');
+
+btnExplore.addEventListener('click', ()=>{
+  btnExplore.classList.add('active'); btnQuiz.classList.remove('active');
+  exploreSection.classList.remove('hidden'); quizSection.classList.add('hidden');
+});
+btnQuiz.addEventListener('click', ()=>{
+  btnQuiz.classList.add('active'); btnExplore.classList.remove('active');
+  quizSection.classList.remove('hidden'); exploreSection.classList.add('hidden');
+  if(quizOrder.length === 0) startQuiz();
+});
+
+// ---------- Quiz ----------
+const QUIZ_LENGTH = 8;
+let quizOrder = [];
+let quizIndex = 0;
+let quizScore = 0;
+let answered = false;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(){
+  quizOrder = shuffle(ANIMALS).slice(0, QUIZ_LENGTH);
+  quizIndex = 0;
+  quizScore = 0;
+  document.getElementById('quiz-active').classList.remove('hidden');
+  document.getElementById('quiz-done').classList.add('hidden');
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+  answered = false;
+  const a = quizOrder[quizIndex];
+  document.getElementById('quiz-progress').textContent = `Question ${quizIndex+1} of ${QUIZ_LENGTH} · Score: ${quizScore}`;
+  document.getElementById('quiz-illustration').innerHTML = a.svg;
+  document.getElementById('quiz-feedback').textContent = '';
+  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+
+  const others = shuffle(ANIMALS.filter(x=>x.id!==a.id)).slice(0,3);
+  const options = shuffle([a, ...others]);
+
+  const answersDiv = document.getElementById('quiz-answers');
+  answersDiv.innerHTML = '';
+  options.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = opt.name;
+    btn.addEventListener('click', ()=> handleAnswer(btn, opt, a));
+    answersDiv.appendChild(btn);
+  });
+}
+
+function handleAnswer(btn, chosen, correctAnimal){
+  if(answered) return;
+  answered = true;
+  const feedback = document.getElementById('quiz-feedback');
+  const allBtns = document.querySelectorAll('.answer-btn');
+
+  if(chosen.id === correctAnimal.id){
+    quizScore++;
+    btn.classList.add('correct');
+    feedback.textContent = 'Yes! Great job! 🌟';
+    feedback.className = 'quiz-feedback correct';
+    speak(correctAnimal.name);
+  } else {
+    btn.classList.add('wrong');
+    feedback.textContent = `Not quite — that's a ${correctAnimal.name}.`;
+    feedback.className = 'quiz-feedback wrong';
+    allBtns.forEach(b=>{ if(b.textContent === correctAnimal.name) b.classList.add('correct'); });
+  }
+  allBtns.forEach(b=> b.disabled = true);
+
+  setTimeout(()=>{
+    quizIndex++;
+    if(quizIndex < QUIZ_LENGTH){
+      renderQuizQuestion();
+    } else {
+      finishQuiz();
+    }
+  }, 1400);
+}
+
+function finishQuiz(){
+  document.getElementById('quiz-active').classList.add('hidden');
+  document.getElementById('quiz-done').classList.remove('hidden');
+  document.getElementById('quiz-progress').textContent = '';
+  document.getElementById('quiz-score').textContent = `${quizScore} / ${QUIZ_LENGTH}`;
+  let msg = 'Nice try — explore more animals and play again!';
+  if(quizScore === QUIZ_LENGTH) msg = 'Perfect score! You know your animals! 🥳';
+  else if(quizScore >= QUIZ_LENGTH*0.7) msg = 'Great job! You know a lot of animals! 🎉';
+  document.getElementById('quiz-done-msg').textContent = msg;
+}
+
+document.getElementById('quiz-restart').addEventListener('click', startQuiz);
+</script>
+</body>
+</html>
