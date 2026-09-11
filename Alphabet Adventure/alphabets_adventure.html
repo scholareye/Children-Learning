@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alphabet Adventure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF8EC;
+    --ink:#2E241A;
+    --sun:#FFC845;
+    --sky:#3FB6C9;
+    --coral:#FF6F59;
+    --grass:#5FA463;
+    --grape:#8E6BB0;
+    --card:#ffffff;
+    --ring:rgba(46,36,26,0.12);
+  }
+  *{box-sizing:border-box;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 8% 12%, rgba(255,200,69,0.35), transparent 40%),
+      radial-gradient(circle at 92% 85%, rgba(63,182,201,0.28), transparent 45%),
+      var(--cream);
+    font-family:'Nunito', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding:20px 16px 48px;
+  }
+  .wrap{max-width:920px; margin:0 auto;}
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand .mascot{
+    font-size:44px;
+    display:inline-block;
+    transform:rotate(-6deg);
+  }
+  .brand h1{
+    font-family:'Fredoka', sans-serif;
+    font-weight:700;
+    font-size:clamp(24px,4vw,34px);
+    margin:0;
+    letter-spacing:0.3px;
+  }
+  .brand p{margin:2px 0 0; font-size:14px; font-weight:700; color:#7a6a52;}
+
+  .modes{
+    display:flex;
+    background:var(--card);
+    border-radius:999px;
+    padding:5px;
+    box-shadow:0 3px 0 var(--ring);
+    gap:4px;
+  }
+  .modes button{
+    border:none;
+    background:transparent;
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:9px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    color:#7a6a52;
+  }
+  .modes button.active{
+    background:var(--sun);
+    color:var(--ink);
+  }
+  .modes button:focus-visible, button:focus-visible, .letter-tile:focus-visible{
+    outline:3px solid var(--sky);
+    outline-offset:2px;
+  }
+
+  /* ---------- LEARN GRID ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(72px,1fr));
+    gap:10px;
+  }
+  .letter-tile{
+    aspect-ratio:1;
+    border:none;
+    border-radius:20px;
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:26px;
+    cursor:pointer;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 4px 0 var(--ring);
+    transition:transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .letter-tile:hover{transform:translateY(-2px);}
+  .letter-tile:active{transform:translateY(1px); box-shadow:0 2px 0 var(--ring);}
+  .letter-tile.done::after{
+    content:"";
+  }
+  .letter-tile .badge{
+    position:relative;
+    display:inline-block;
+  }
+  .letter-tile .dot{
+    position:absolute;
+    top:-6px; right:-10px;
+    width:9px;height:9px;
+    border-radius:50%;
+    background:var(--grass);
+    display:none;
+  }
+  .letter-tile.seen .dot{display:block;}
+
+  /* palette cycling for tiles */
+  .p0{background:#FFE3A6;} .p1{background:#BFE9EE;} .p2{background:#FFD1C9;}
+  .p3{background:#D5E9C7;} .p4{background:#E4D6EE;} .p5{background:#FFF0BF;}
+
+  /* ---------- DETAIL VIEW ---------- */
+  .detail{
+    background:var(--card);
+    border-radius:28px;
+    padding:26px;
+    box-shadow:0 5px 0 var(--ring);
+    display:none;
+  }
+  .detail.open{display:block;}
+  .detail-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .back-btn{
+    border:none;
+    background:none;
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    color:#7a6a52;
+    cursor:pointer;
+    padding:6px 4px;
+  }
+  .nav-arrows{display:flex; gap:8px;}
+  .nav-arrows button{
+    border:none;
+    background:var(--sky);
+    color:white;
+    width:36px;height:36px;
+    border-radius:50%;
+    font-size:18px;
+    cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.12);
+  }
+
+  .detail-body{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+    align-items:center;
+  }
+  @media (max-width:640px){
+    .detail-body{grid-template-columns:1fr;}
+  }
+
+  .letter-display{
+    text-align:center;
+  }
+  .big-letters{
+    font-family:'Fredoka', sans-serif;
+    font-weight:700;
+    font-size:clamp(70px,14vw,120px);
+    line-height:1;
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    color:var(--coral);
+  }
+  .word-line{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:22px;
+    margin-top:6px;
+  }
+  .emoji-big{font-size:56px; margin-top:8px; display:block;}
+  .say-btn{
+    margin-top:14px;
+    border:none;
+    background:var(--grass);
+    color:white;
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:10px 20px;
+    border-radius:999px;
+    cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+
+  .trace-box{text-align:center;}
+  .trace-box h3{
+    font-family:'Fredoka', sans-serif;
+    font-size:15px;
+    margin:0 0 8px;
+    color:#7a6a52;
+    font-weight:600;
+  }
+  .canvas-stack{
+    position:relative;
+    width:220px;
+    height:220px;
+    margin:0 auto;
+    border-radius:20px;
+    background:#FBF6EA;
+    box-shadow:inset 0 0 0 3px var(--ring);
+  }
+  .canvas-stack canvas{
+    position:absolute;
+    top:0; left:0;
+    width:100%;
+    height:100%;
+    touch-action:none;
+  }
+  .clear-btn{
+    margin-top:10px;
+    border:none;
+    background:none;
+    text-decoration:underline;
+    font-family:'Nunito',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    color:#7a6a52;
+    cursor:pointer;
+  }
+
+  /* ---------- QUIZ ---------- */
+  .quiz{
+    background:var(--card);
+    border-radius:28px;
+    padding:28px;
+    box-shadow:0 5px 0 var(--ring);
+    text-align:center;
+    display:none;
+  }
+  .quiz.open{display:block;}
+  .quiz-score{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    color:#7a6a52;
+    margin-bottom:6px;
+    font-size:14px;
+  }
+  .quiz-emoji{font-size:80px; margin:10px 0;}
+  .quiz-prompt{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:19px;
+    margin-bottom:18px;
+  }
+  .quiz-options{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    max-width:420px;
+    margin:0 auto;
+  }
+  @media (max-width:480px){
+    .quiz-options{grid-template-columns:repeat(2,1fr);}
+  }
+  .quiz-options button{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:26px;
+    padding:16px 0;
+    border:none;
+    border-radius:16px;
+    background:var(--sun);
+    cursor:pointer;
+    box-shadow:0 4px 0 var(--ring);
+  }
+  .quiz-options button:active{transform:translateY(2px); box-shadow:0 2px 0 var(--ring);}
+  .quiz-options button.correct{background:var(--grass); color:white;}
+  .quiz-options button.wrong{background:var(--coral); color:white;}
+  .quiz-feedback{
+    min-height:28px;
+    margin-top:16px;
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:16px;
+  }
+  .quiz-next{
+    margin-top:6px;
+    border:none;
+    background:var(--sky);
+    color:white;
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:10px 22px;
+    border-radius:999px;
+    cursor:pointer;
+    display:none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <span class="mascot" aria-hidden="true">🦊</span>
+      <div>
+        <h1>Alphabet Adventure</h1>
+        <p>Tap a letter to learn it, then try the quiz!</p>
+      </div>
+    </div>
+    <div class="modes" role="tablist" aria-label="Mode">
+      <button id="tab-learn" class="active" role="tab" aria-selected="true">Learn</button>
+      <button id="tab-quiz" role="tab" aria-selected="false">Quiz</button>
+    </div>
+  </header>
+
+  <section id="learn-grid" class="grid" aria-label="Letter grid"></section>
+
+  <section id="detail" class="detail" aria-live="polite">
+    <div class="detail-top">
+      <button class="back-btn" id="back-btn">&larr; All letters</button>
+      <div class="nav-arrows">
+        <button id="prev-btn" aria-label="Previous letter">&larr;</button>
+        <button id="next-btn" aria-label="Next letter">&rarr;</button>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="letter-display">
+        <div class="big-letters" id="big-letters"></div>
+        <div class="word-line" id="word-line"></div>
+        <span class="emoji-big" id="emoji-big"></span>
+        <br>
+        <button class="say-btn" id="say-btn">🔊 Hear it</button>
+      </div>
+      <div class="trace-box">
+        <h3>Trace the letter</h3>
+        <div class="canvas-stack">
+          <canvas id="guide-canvas" width="220" height="220"></canvas>
+          <canvas id="draw-canvas" width="220" height="220"></canvas>
+        </div>
+        <button class="clear-btn" id="clear-btn">Clear and try again</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="quiz" class="quiz" aria-live="polite">
+    <div class="quiz-score" id="quiz-score">Score: 0 / 0</div>
+    <div class="quiz-emoji" id="quiz-emoji"></div>
+    <div class="quiz-prompt" id="quiz-prompt"></div>
+    <div class="quiz-options" id="quiz-options"></div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <button class="quiz-next" id="quiz-next">Next one &rarr;</button>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var DATA = [
+    ["A","Apple","🍎"], ["B","Ball","⚽"], ["C","Cat","🐱"], ["D","Dog","🐶"],
+    ["E","Elephant","🐘"], ["F","Fish","🐟"], ["G","Grapes","🍇"], ["H","Hat","🎩"],
+    ["I","Ice Cream","🍦"], ["J","Juice","🧃"], ["K","Kite","🪁"], ["L","Lion","🦁"],
+    ["M","Moon","🌙"], ["N","Noodles","🍜"], ["O","Owl","🦉"], ["P","Pumpkin","🎃"],
+    ["Q","Queen","👑"], ["R","Rainbow","🌈"], ["S","Sun","☀️"], ["T","Tiger","🐯"],
+    ["U","Umbrella","☂️"], ["V","Violin","🎻"], ["W","Watermelon","🍉"],
+    ["X","Xylophone","🎹"], ["Y","Yo-yo","🪀"], ["Z","Zebra","🦓"]
+  ];
+
+  var seen = {};
+  var currentIndex = 0;
+  var grid = document.getElementById("learn-grid");
+  var detail = document.getElementById("detail");
+  var quizSection = document.getElementById("quiz");
+  var tabLearn = document.getElementById("tab-learn");
+  var tabQuiz = document.getElementById("tab-quiz");
+
+  // ---------- Build grid ----------
+  DATA.forEach(function(item, i){
+    var btn = document.createElement("button");
+    btn.className = "letter-tile p" + (i % 6);
+    btn.setAttribute("aria-label", item[0] + " is for " + item[1]);
+    btn.innerHTML = '<span class="badge">' + item[0] + '<span class="dot"></span></span>';
+    btn.addEventListener("click", function(){ openDetail(i); });
+    grid.appendChild(btn);
+  });
+
+  function refreshDots(){
+    var tiles = grid.querySelectorAll(".letter-tile");
+    tiles.forEach(function(t, i){
+      t.classList.toggle("seen", !!seen[i]);
+    });
+  }
+
+  // ---------- Tabs ----------
+  function showLearn(){
+    tabLearn.classList.add("active"); tabLearn.setAttribute("aria-selected","true");
+    tabQuiz.classList.remove("active"); tabQuiz.setAttribute("aria-selected","false");
+    quizSection.classList.remove("open");
+    grid.style.display = "grid";
+    if (detailWasOpen) detail.classList.add("open");
+  }
+  var detailWasOpen = false;
+
+  function showQuiz(){
+    tabQuiz.classList.add("active"); tabQuiz.setAttribute("aria-selected","true");
+    tabLearn.classList.remove("active"); tabLearn.setAttribute("aria-selected","false");
+    grid.style.display = "none";
+    detailWasOpen = detail.classList.contains("open");
+    detail.classList.remove("open");
+    quizSection.classList.add("open");
+    newQuestion();
+  }
+
+  tabLearn.addEventListener("click", showLearn);
+  tabQuiz.addEventListener("click", showQuiz);
+
+  // ---------- Detail view ----------
+  var bigLetters = document.getElementById("big-letters");
+  var wordLine = document.getElementById("word-line");
+  var emojiBig = document.getElementById("emoji-big");
+  var guideCanvas = document.getElementById("guide-canvas");
+  var drawCanvas = document.getElementById("draw-canvas");
+  var gctx = guideCanvas.getContext("2d");
+  var dctx = drawCanvas.getContext("2d");
+
+  function openDetail(i){
+    currentIndex = i;
+    seen[i] = true;
+    refreshDots();
+    var item = DATA[i];
+    bigLetters.textContent = item[0] + " " + item[0].toLowerCase();
+    wordLine.textContent = item[0] + " is for " + item[1];
+    emojiBig.textContent = item[2];
+    drawGuide(item[0]);
+    clearDrawing();
+    grid.style.display = "none";
+    detail.classList.add("open");
+    speak(item[0] + ". " + item[0] + " is for " + item[1] + ".");
+  }
+
+  document.getElementById("back-btn").addEventListener("click", function(){
+    detail.classList.remove("open");
+    grid.style.display = "grid";
+  });
+
+  document.getElementById("prev-btn").addEventListener("click", function(){
+    openDetail((currentIndex - 1 + DATA.length) % DATA.length);
+  });
+  document.getElementById("next-btn").addEventListener("click", function(){
+    openDetail((currentIndex + 1) % DATA.length);
+  });
+
+  document.getElementById("say-btn").addEventListener("click", function(){
+    var item = DATA[currentIndex];
+    speak(item[0] + ". " + item[0] + " is for " + item[1] + ".");
+  });
+
+  function speak(text){
+    if (!("speechSynthesis" in window)) return;
+    try{
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.85;
+      u.pitch = 1.1;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  function drawGuide(letter){
+    gctx.clearRect(0,0,220,220);
+    gctx.font = "700 150px Fredoka, sans-serif";
+    gctx.textAlign = "center";
+    gctx.textBaseline = "middle";
+    gctx.setLineDash([6,7]);
+    gctx.lineWidth = 2;
+    gctx.strokeStyle = "#C9BBA2";
+    gctx.strokeText(letter, 110, 118);
+  }
+
+  function clearDrawing(){
+    dctx.clearRect(0,0,220,220);
+  }
+  document.getElementById("clear-btn").addEventListener("click", clearDrawing);
+
+  // drawing interaction
+  var drawing = false;
+  function pos(e){
+    var rect = drawCanvas.getBoundingClientRect();
+    var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * (220 / rect.width),
+      y: (clientY - rect.top) * (220 / rect.height)
+    };
+  }
+  function start(e){
+    drawing = true;
+    var p = pos(e);
+    dctx.beginPath();
+    dctx.moveTo(p.x, p.y);
+    e.preventDefault();
+  }
+  function move(e){
+    if (!drawing) return;
+    var p = pos(e);
+    dctx.lineWidth = 10;
+    dctx.lineCap = "round";
+    dctx.strokeStyle = "#FF6F59";
+    dctx.lineTo(p.x, p.y);
+    dctx.stroke();
+    e.preventDefault();
+  }
+  function end(){ drawing = false; }
+
+  drawCanvas.addEventListener("mousedown", start);
+  drawCanvas.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", end);
+  drawCanvas.addEventListener("touchstart", start, {passive:false});
+  drawCanvas.addEventListener("touchmove", move, {passive:false});
+  drawCanvas.addEventListener("touchend", end);
+
+  // ---------- Quiz ----------
+  var quizScoreEl = document.getElementById("quiz-score");
+  var quizEmoji = document.getElementById("quiz-emoji");
+  var quizPrompt = document.getElementById("quiz-prompt");
+  var quizOptions = document.getElementById("quiz-options");
+  var quizFeedback = document.getElementById("quiz-feedback");
+  var quizNext = document.getElementById("quiz-next");
+  var score = 0, asked = 0, currentAnswer = null, answered = false;
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i+1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function newQuestion(){
+    answered = false;
+    quizFeedback.textContent = "";
+    quizNext.style.display = "none";
+    var qIndex = Math.floor(Math.random() * DATA.length);
+    var item = DATA[qIndex];
+    currentAnswer = item[0];
+    quizEmoji.textContent = item[2];
+    quizPrompt.textContent = "What letter does " + item[1] + " start with?";
+
+    var pool = [item[0]];
+    while (pool.length < 4){
+      var candidate = DATA[Math.floor(Math.random() * DATA.length)][0];
+      if (pool.indexOf(candidate) === -1) pool.push(candidate);
+    }
+    pool = shuffle(pool);
+
+    quizOptions.innerHTML = "";
+    pool.forEach(function(letter){
+      var btn = document.createElement("button");
+      btn.textContent = letter;
+      btn.addEventListener("click", function(){ selectAnswer(letter, btn); });
+      quizOptions.appendChild(btn);
+    });
+
+    quizScoreEl.textContent = "Score: " + score + " / " + asked;
+  }
+
+  function selectAnswer(letter, btn){
+    if (answered) return;
+    answered = true;
+    asked++;
+    var buttons = quizOptions.querySelectorAll("button");
+    buttons.forEach(function(b){
+      b.disabled = true;
+      if (b.textContent === currentAnswer) b.classList.add("correct");
+    });
+    if (letter === currentAnswer){
+      score++;
+      quizFeedback.textContent = "Yes! " + letter + " is right. 🎉";
+      speak("Yes! " + letter + " is correct!");
+    } else {
+      btn.classList.add("wrong");
+      quizFeedback.textContent = "Not quite — the answer is " + currentAnswer + ".";
+      speak("Good try. The answer is " + currentAnswer + ".");
+    }
+    quizScoreEl.textContent = "Score: " + score + " / " + asked;
+    quizNext.style.display = "inline-block";
+  }
+
+  quizNext.addEventListener("click", newQuestion);
+
+})();
+</script>
+</body>
+</html>
