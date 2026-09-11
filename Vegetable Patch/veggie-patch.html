@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veggie Patch — Learn Vegetable Names</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky:#BFE6F5;
+    --sky-2:#E4F6FC;
+    --soil:#8B5E3C;
+    --soil-dark:#6E4A2E;
+    --leaf:#5FA646;
+    --leaf-dark:#3F7A2E;
+    --sun:#FFC93C;
+    --ink:#2E3B2A;
+    --card:#FFFFFF;
+    --card-edge:#E7E1D2;
+    --correct:#5FA646;
+    --wrong:#D9603B;
+    font-family: 'Nunito', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: linear-gradient(180deg, var(--sky-2) 0%, var(--sky) 45%, var(--sky) 100%);
+    color:var(--ink);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  .sun{
+    position:absolute; top:-60px; right:-40px; width:220px; height:220px;
+    background: radial-gradient(circle at 40% 35%, #FFE18A, var(--sun) 70%);
+    border-radius:50%;
+    box-shadow: 0 0 0 14px rgba(255,201,60,0.18);
+    z-index:0;
+  }
+  .cloud{
+    position:absolute; background:#fff; border-radius:50px; opacity:0.85; z-index:0;
+  }
+  header{
+    position:relative; z-index:1;
+    padding: 44px 24px 20px;
+    text-align:center;
+  }
+  h1{
+    font-family:'Fredoka', sans-serif;
+    font-weight:700;
+    font-size: clamp(2.2rem, 6vw, 3.4rem);
+    margin:0;
+    color:#2E3B2A;
+    letter-spacing:0.5px;
+  }
+  h1 span{ color: var(--leaf-dark); }
+  .subtitle{
+    font-size:1.05rem;
+    max-width:480px;
+    margin:10px auto 0;
+    color:#3E4A38;
+    font-weight:700;
+  }
+  nav.modes{
+    position:relative; z-index:1;
+    display:flex; justify-content:center; gap:14px;
+    margin: 22px 0 6px;
+    flex-wrap:wrap;
+  }
+  .mode-btn{
+    font-family:'Fredoka', sans-serif;
+    font-size:1.05rem; font-weight:600;
+    padding:12px 26px;
+    border-radius:999px;
+    border:3px solid var(--leaf-dark);
+    background:#fff;
+    color:var(--leaf-dark);
+    cursor:pointer;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .mode-btn:hover{ transform: translateY(-2px); }
+  .mode-btn.active{
+    background:var(--leaf-dark);
+    color:#fff;
+  }
+  main{
+    position:relative; z-index:1;
+    max-width:980px;
+    margin:0 auto;
+    padding: 18px 20px 60px;
+  }
+
+  /* ---- Explore grid ---- */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap:18px;
+    margin-top: 20px;
+  }
+  .veg-card{
+    background:var(--card);
+    border:2px solid var(--card-edge);
+    border-radius:20px;
+    padding:14px 10px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .veg-card:nth-child(odd){ transform: rotate(-1.2deg); }
+  .veg-card:nth-child(even){ transform: rotate(1.2deg); }
+  .veg-card:hover{
+    transform: translateY(-4px) rotate(0deg) scale(1.03);
+    box-shadow: 0 10px 20px rgba(46,59,42,0.12);
+  }
+  .veg-card svg{ width:88px; height:88px; }
+  .veg-card .name{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:1.05rem;
+    margin-top:6px;
+  }
+
+  /* ---- Detail panel ---- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(46,59,42,0.45);
+    display:none; align-items:center; justify-content:center;
+    z-index:10; padding:20px;
+  }
+  .overlay.open{ display:flex; }
+  .detail-card{
+    background:#fff; border-radius:28px; padding:32px 28px 28px;
+    max-width:360px; width:100%; text-align:center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    position:relative;
+  }
+  .detail-card svg{ width:150px; height:150px; }
+  .detail-card .name{
+    font-family:'Fredoka', sans-serif;
+    font-size:1.8rem; font-weight:700; margin:6px 0 2px;
+  }
+  .detail-card .fact{
+    font-size:1rem; color:#4A564A; margin: 10px 0 18px; line-height:1.4;
+  }
+  .say-btn{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600; font-size:1rem;
+    background:var(--sun); border:none; border-radius:999px;
+    padding:12px 24px; cursor:pointer;
+    box-shadow: 0 4px 0 #E0A821;
+  }
+  .say-btn:active{ transform: translateY(2px); box-shadow:none; }
+  .close-btn{
+    position:absolute; top:14px; right:16px;
+    background:none; border:none; font-size:1.4rem; cursor:pointer;
+    color:#8A9285;
+    font-family:'Nunito', sans-serif;
+  }
+
+  /* ---- Quiz ---- */
+  .quiz-wrap{ text-align:center; margin-top:10px; }
+  .quiz-progress{
+    font-weight:800; color:#4A564A; margin-bottom:6px;
+  }
+  .quiz-stage{
+    background:var(--card);
+    border:2px solid var(--card-edge);
+    border-radius:26px;
+    padding:26px 20px;
+    max-width:380px;
+    margin: 12px auto 22px;
+  }
+  .quiz-stage svg{ width:150px; height:150px; }
+  .quiz-question{
+    font-family:'Fredoka', sans-serif;
+    font-size:1.15rem; font-weight:600; margin-top:8px;
+  }
+  .answers{
+    display:grid; grid-template-columns: 1fr 1fr;
+    gap:12px; max-width:420px; margin:0 auto;
+  }
+  .answer-btn{
+    font-family:'Fredoka', sans-serif;
+    font-size:1rem; font-weight:600;
+    padding:14px 10px;
+    border-radius:16px;
+    border:2.5px solid var(--card-edge);
+    background:#fff;
+    cursor:pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+  }
+  .answer-btn:hover{ transform: translateY(-2px); }
+  .answer-btn.correct{ background:#E6F4E1; border-color:var(--correct); color:var(--leaf-dark); }
+  .answer-btn.wrong{ background:#FBE7E0; border-color:var(--wrong); color:#A5432A; }
+  .answer-btn[disabled]{ cursor:default; }
+  .quiz-feedback{
+    min-height:28px; margin-top:14px; font-weight:800;
+    font-family:'Fredoka', sans-serif;
+  }
+  .quiz-feedback.correct{ color:var(--leaf-dark); }
+  .quiz-feedback.wrong{ color:var(--wrong); }
+  .quiz-done{ max-width:380px; margin:0 auto; }
+  .quiz-done .score{
+    font-family:'Fredoka', sans-serif; font-size:2.4rem; font-weight:700;
+    color:var(--leaf-dark);
+  }
+  .restart-btn{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600; font-size:1rem;
+    margin-top:16px;
+    background:var(--leaf-dark); color:#fff; border:none; border-radius:999px;
+    padding:12px 28px; cursor:pointer;
+  }
+  .hidden{ display:none !important; }
+  .ground{
+    height:60px; margin-top:20px;
+    background: linear-gradient(180deg, var(--soil) 0%, var(--soil-dark) 100%);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    position:relative; z-index:1;
+  }
+</style>
+</head>
+<body>
+
+<div class="sun"></div>
+<div class="cloud" style="top:40px; left:6%; width:70px; height:26px;"></div>
+<div class="cloud" style="top:70px; left:12%; width:50px; height:20px;"></div>
+<div class="cloud" style="top:30px; left:60%; width:60px; height:22px;"></div>
+
+<header>
+  <h1>Welcome to the <span>Veggie Patch</span></h1>
+  <p class="subtitle">Tap a vegetable to meet it, hear its name, and learn a fun fact. Then try the quiz!</p>
+</header>
+
+<nav class="modes">
+  <button class="mode-btn active" id="btn-explore">🌱 Explore</button>
+  <button class="mode-btn" id="btn-quiz">🎯 Quiz Time</button>
+</nav>
+
+<main>
+  <section id="explore-section">
+    <div class="grid" id="veg-grid"></div>
+  </section>
+
+  <section id="quiz-section" class="hidden">
+    <div class="quiz-wrap">
+      <div class="quiz-progress" id="quiz-progress"></div>
+
+      <div id="quiz-active">
+        <div class="quiz-stage">
+          <div id="quiz-illustration"></div>
+          <div class="quiz-question">What's this vegetable called?</div>
+        </div>
+        <div class="answers" id="quiz-answers"></div>
+        <div class="quiz-feedback" id="quiz-feedback"></div>
+      </div>
+
+      <div id="quiz-done" class="quiz-done hidden">
+        <div class="score" id="quiz-score"></div>
+        <div id="quiz-done-msg"></div>
+        <button class="restart-btn" id="quiz-restart">Play again</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="ground"></div>
+
+<div class="overlay" id="overlay">
+  <div class="detail-card">
+    <button class="close-btn" id="close-detail">✕</button>
+    <div id="detail-illustration"></div>
+    <div class="name" id="detail-name"></div>
+    <div class="fact" id="detail-fact"></div>
+    <button class="say-btn" id="say-btn">🔊 Say it!</button>
+  </div>
+</div>
+
+<script>
+// ---------- Vegetable data ----------
+const VEGGIES = [
+  { id:'carrot', name:'Carrot', fact:'Carrots grow underground and were once mostly purple, not orange!',
+    svg:`<svg viewBox="0 0 200 200"><path d="M100 40 L130 170 Q100 190 70 170 Z" fill="#F4903A" stroke="#2E3B2A" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M100 40 Q95 15 78 8 M100 40 Q100 12 100 4 M100 40 Q105 15 122 8" stroke="#5FA646" stroke-width="7" fill="none" stroke-linecap="round"/></svg>` },
+
+  { id:'tomato', name:'Tomato', fact:'Tomatoes are technically a fruit, but chefs treat them like a vegetable.',
+    svg:`<svg viewBox="0 0 200 200"><circle cx="100" cy="115" r="65" fill="#E4472B" stroke="#2E3B2A" stroke-width="5"/>
+    <path d="M100 50 L88 30 M100 50 L100 26 M100 50 L112 30 M100 50 L75 40 M100 50 L125 40" stroke="#5FA646" stroke-width="7" fill="none" stroke-linecap="round"/></svg>` },
+
+  { id:'broccoli', name:'Broccoli', fact:'Broccoli is actually a tiny cluster of unopened flower buds.',
+    svg:`<svg viewBox="0 0 200 200"><rect x="88" y="120" width="24" height="55" rx="10" fill="#C9E4A0" stroke="#2E3B2A" stroke-width="5"/>
+    <circle cx="70" cy="90" r="30" fill="#5FA646" stroke="#2E3B2A" stroke-width="5"/>
+    <circle cx="110" cy="75" r="34" fill="#5FA646" stroke="#2E3B2A" stroke-width="5"/>
+    <circle cx="140" cy="100" r="28" fill="#5FA646" stroke="#2E3B2A" stroke-width="5"/></svg>` },
+
+  { id:'corn', name:'Corn', fact:'A single ear of corn always has an even number of kernel rows.',
+    svg:`<svg viewBox="0 0 200 200"><ellipse cx="100" cy="105" rx="34" ry="80" fill="#FBD24A" stroke="#2E3B2A" stroke-width="5"/>
+    <path d="M75 40 Q40 60 58 110 M125 40 Q160 60 142 110" stroke="#5FA646" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <g stroke="#D9A72C" stroke-width="3">
+      <path d="M75 55 L75 155 M88 45 L88 165 M100 40 L100 170 M112 45 L112 165 M125 55 L125 155"/>
+    </g></svg>` },
+
+  { id:'pepper', name:'Pepper', fact:'Bell peppers start out green and turn yellow, orange or red as they ripen.',
+    svg:`<svg viewBox="0 0 200 200"><path d="M75 60 Q60 100 70 150 Q90 185 100 150 Q110 185 130 150 Q140 100 125 60 Q100 75 75 60 Z" fill="#E4472B" stroke="#2E3B2A" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M100 60 L100 30 M100 45 L85 30 M100 45 L115 30" stroke="#5FA646" stroke-width="7" fill="none" stroke-linecap="round"/></svg>` },
+
+  { id:'eggplant', name:'Eggplant', fact:'Eggplants got their name because some varieties look like white eggs.',
+    svg:`<svg viewBox="0 0 200 200"><path d="M100 55 C60 55 55 110 75 150 C85 175 115 175 125 150 C145 110 140 55 100 55 Z" fill="#7B4B8A" stroke="#2E3B2A" stroke-width="5"/>
+    <path d="M100 55 L100 30 M100 40 L80 28 M100 40 L120 28" stroke="#5FA646" stroke-width="7" fill="none" stroke-linecap="round"/></svg>` },
+
+  { id:'pumpkin', name:'Pumpkin', fact:'Pumpkins are more than 90% water!',
+    svg:`<svg viewBox="0 0 200 200"><ellipse cx="100" cy="115" rx="70" ry="55" fill="#F4903A" stroke="#2E3B2A" stroke-width="5"/>
+    <path d="M65 115 Q65 65 100 60 M100 60 Q135 65 135 115" stroke="#D9781E" stroke-width="3" fill="none"/>
+    <path d="M100 60 Q100 65 98 60 L100 30" stroke="#8B5E3C" stroke-width="8" fill="none" stroke-linecap="round"/></svg>` },
+
+  { id:'cucumber', name:'Cucumber', fact:'Cucumbers are almost all water, which makes them wonderfully crunchy.',
+    svg:`<svg viewBox="0 0 200 200"><rect x="35" y="90" width="130" height="42" rx="21" fill="#7CB342" stroke="#2E3B2A" stroke-width="5" transform="rotate(-12 100 110)"/></svg>` },
+
+  { id:'onion', name:'Onion', fact:'Onions have papery layers that grow in rings, one inside the other.',
+    svg:`<svg viewBox="0 0 200 200"><path d="M100 60 C60 60 55 120 80 160 Q100 185 120 160 C145 120 140 60 100 60 Z" fill="#C9A2CE" stroke="#2E3B2A" stroke-width="5"/>
+    <path d="M85 65 Q100 130 100 165 M115 65 Q100 130 100 165" stroke="#9B6FA3" stroke-width="3" fill="none"/>
+    <path d="M100 60 L96 25 M100 60 L104 22" stroke="#5FA646" stroke-width="6" fill="none" stroke-linecap="round"/></svg>` },
+
+  { id:'potato', name:'Potato', fact:'Potatoes grow underground and have little "eyes" that can sprout new plants.',
+    svg:`<svg viewBox="0 0 200 200"><path d="M55 110 Q45 75 85 65 Q120 50 150 80 Q170 105 145 135 Q150 165 110 165 Q65 170 55 140 Q45 125 55 110 Z" fill="#C89B6A" stroke="#2E3B2A" stroke-width="5" stroke-linejoin="round"/>
+    <circle cx="85" cy="105" r="4" fill="#2E3B2A"/><circle cx="115" cy="90" r="4" fill="#2E3B2A"/><circle cx="105" cy="130" r="4" fill="#2E3B2A"/></svg>` },
+
+  { id:'peas', name:'Peas', fact:'Pea pods usually hold five to six little peas snug in a row.',
+    svg:`<svg viewBox="0 0 200 200"><path d="M45 100 Q40 60 90 55 Q160 50 155 100 Q160 150 90 145 Q40 140 45 100 Z" fill="#8FC15A" stroke="#2E3B2A" stroke-width="5"/>
+    <circle cx="70" cy="98" r="16" fill="#5FA646" stroke="#2E3B2A" stroke-width="3"/>
+    <circle cx="100" cy="94" r="16" fill="#5FA646" stroke="#2E3B2A" stroke-width="3"/>
+    <circle cx="130" cy="100" r="16" fill="#5FA646" stroke="#2E3B2A" stroke-width="3"/></svg>` },
+
+  { id:'cabbage', name:'Cabbage', fact:'Cabbage leaves wrap around each other in tight layers, like a leafy ball.',
+    svg:`<svg viewBox="0 0 200 200"><circle cx="100" cy="110" r="65" fill="#9ED17E" stroke="#2E3B2A" stroke-width="5"/>
+    <path d="M100 110 m-45 0 a45 45 0 1 0 90 0 a45 45 0 1 0 -90 0" fill="none" stroke="#6FA84F" stroke-width="3"/>
+    <path d="M100 110 m-25 0 a25 25 0 1 0 50 0 a25 25 0 1 0 -50 0" fill="none" stroke="#6FA84F" stroke-width="3"/></svg>` },
+];
+
+// ---------- Explore grid ----------
+const grid = document.getElementById('veg-grid');
+VEGGIES.forEach(v=>{
+  const card = document.createElement('div');
+  card.className = 'veg-card';
+  card.innerHTML = `${v.svg}<div class="name">${v.name}</div>`;
+  card.addEventListener('click', ()=> openDetail(v));
+  grid.appendChild(card);
+});
+
+const overlay = document.getElementById('overlay');
+const detailIllustration = document.getElementById('detail-illustration');
+const detailName = document.getElementById('detail-name');
+const detailFact = document.getElementById('detail-fact');
+let currentVeg = null;
+
+function openDetail(v){
+  currentVeg = v;
+  detailIllustration.innerHTML = v.svg;
+  detailName.textContent = v.name;
+  detailFact.textContent = v.fact;
+  overlay.classList.add('open');
+}
+document.getElementById('close-detail').addEventListener('click', ()=> overlay.classList.remove('open'));
+overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('open'); });
+
+document.getElementById('say-btn').addEventListener('click', ()=>{
+  if(!currentVeg) return;
+  speakName(currentVeg.name);
+});
+
+function speakName(name){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(name);
+  utter.rate = 0.85;
+  utter.pitch = 1.1;
+  utter.lang = 'en-US';
+  window.speechSynthesis.speak(utter);
+}
+
+// ---------- Mode switching ----------
+const btnExplore = document.getElementById('btn-explore');
+const btnQuiz = document.getElementById('btn-quiz');
+const exploreSection = document.getElementById('explore-section');
+const quizSection = document.getElementById('quiz-section');
+
+btnExplore.addEventListener('click', ()=>{
+  btnExplore.classList.add('active'); btnQuiz.classList.remove('active');
+  exploreSection.classList.remove('hidden'); quizSection.classList.add('hidden');
+});
+btnQuiz.addEventListener('click', ()=>{
+  btnQuiz.classList.add('active'); btnExplore.classList.remove('active');
+  quizSection.classList.remove('hidden'); exploreSection.classList.add('hidden');
+  if(quizOrder.length === 0) startQuiz();
+});
+
+// ---------- Quiz ----------
+const QUIZ_LENGTH = 8;
+let quizOrder = [];
+let quizIndex = 0;
+let quizScore = 0;
+let answered = false;
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function startQuiz(){
+  quizOrder = shuffle(VEGGIES).slice(0, QUIZ_LENGTH);
+  quizIndex = 0;
+  quizScore = 0;
+  document.getElementById('quiz-active').classList.remove('hidden');
+  document.getElementById('quiz-done').classList.add('hidden');
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+  answered = false;
+  const veg = quizOrder[quizIndex];
+  document.getElementById('quiz-progress').textContent = `Question ${quizIndex+1} of ${QUIZ_LENGTH} · Score: ${quizScore}`;
+  document.getElementById('quiz-illustration').innerHTML = veg.svg;
+  document.getElementById('quiz-feedback').textContent = '';
+  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+
+  const others = shuffle(VEGGIES.filter(v=>v.id!==veg.id)).slice(0,3);
+  const options = shuffle([veg, ...others]);
+
+  const answersDiv = document.getElementById('quiz-answers');
+  answersDiv.innerHTML = '';
+  options.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = opt.name;
+    btn.addEventListener('click', ()=> handleAnswer(btn, opt, veg));
+    answersDiv.appendChild(btn);
+  });
+}
+
+function handleAnswer(btn, chosen, correctVeg){
+  if(answered) return;
+  answered = true;
+  const feedback = document.getElementById('quiz-feedback');
+  const allBtns = document.querySelectorAll('.answer-btn');
+
+  if(chosen.id === correctVeg.id){
+    quizScore++;
+    btn.classList.add('correct');
+    feedback.textContent = 'Yes! Great job! 🌟';
+    feedback.className = 'quiz-feedback correct';
+    speakName(correctVeg.name);
+  } else {
+    btn.classList.add('wrong');
+    feedback.textContent = `Not quite — that's a ${correctVeg.name}.`;
+    feedback.className = 'quiz-feedback wrong';
+    allBtns.forEach(b=>{ if(b.textContent === correctVeg.name) b.classList.add('correct'); });
+  }
+  allBtns.forEach(b=> b.disabled = true);
+
+  setTimeout(()=>{
+    quizIndex++;
+    if(quizIndex < QUIZ_LENGTH){
+      renderQuizQuestion();
+    } else {
+      finishQuiz();
+    }
+  }, 1400);
+}
+
+function finishQuiz(){
+  document.getElementById('quiz-active').classList.add('hidden');
+  document.getElementById('quiz-done').classList.remove('hidden');
+  document.getElementById('quiz-progress').textContent = '';
+  document.getElementById('quiz-score').textContent = `${quizScore} / ${QUIZ_LENGTH}`;
+  let msg = 'Nice try — explore more veggies and play again!';
+  if(quizScore === QUIZ_LENGTH) msg = 'Perfect score! You know your veggies! 🥳';
+  else if(quizScore >= QUIZ_LENGTH*0.7) msg = 'Great job! You know a lot of vegetables! 🎉';
+  document.getElementById('quiz-done-msg').textContent = msg;
+}
+
+document.getElementById('quiz-restart').addEventListener('click', startQuiz);
+</script>
+</body>
+</html>
