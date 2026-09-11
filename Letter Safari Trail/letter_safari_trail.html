@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter Safari Trail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --khaki:#EFE6CC;
+    --deepgreen:#2F5233;
+    --leaf:#7CB342;
+    --sunset:#E8833B;
+    --teal:#3E8E85;
+    --ink:#233A22;
+    --card:#FBF8EF;
+    --shadow:rgba(35,58,34,0.18);
+  }
+  *{box-sizing:border-box;}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
+  html,body{margin:0;}
+  body{
+    font-family:'Quicksand', sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 15% 0%, rgba(124,179,66,0.25), transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(62,142,133,0.22), transparent 50%),
+      var(--khaki);
+    min-height:100vh;
+    padding:22px 16px 50px;
+  }
+  .wrap{max-width:760px; margin:0 auto;}
+
+  header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .brand{display:flex; gap:12px; align-items:center;}
+  .brand .mascot{font-size:42px; transform:scaleX(-1) rotate(8deg); display:inline-block;}
+  h1{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:clamp(22px,4vw,30px);
+    margin:0;
+    color:var(--deepgreen);
+  }
+  header p{margin:2px 0 0; font-weight:600; font-size:13.5px; color:#5b6b4f;}
+
+  nav.modes{
+    display:flex;
+    background:var(--card);
+    border-radius:14px;
+    padding:4px;
+    box-shadow:0 3px 0 var(--shadow);
+  }
+  nav.modes button{
+    border:none;
+    background:transparent;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:8px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    color:#5b6b4f;
+  }
+  nav.modes button.active{background:var(--sunset); color:white;}
+  button:focus-visible, [tabindex]:focus-visible{outline:3px solid var(--teal); outline-offset:2px;}
+
+  .progress-strip{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--card);
+    border-radius:14px;
+    padding:10px 14px;
+    box-shadow:0 3px 0 var(--shadow);
+    margin-bottom:22px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--deepgreen);
+  }
+  .progress-bar{
+    flex:1;
+    height:10px;
+    background:#e5ddc4;
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:var(--leaf);
+    transition:width .3s ease;
+  }
+
+  /* ---------------- TRAIL ---------------- */
+  .trail{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    padding:6px 4px 10px;
+  }
+  .trail::before{
+    content:"";
+    position:absolute;
+    top:8px; bottom:8px; left:50%;
+    width:0;
+    border-left:4px dashed #cabf99;
+    transform:translateX(-50%);
+    z-index:0;
+  }
+  .stone-row{
+    display:flex;
+    z-index:1;
+    position:relative;
+  }
+  .stone-row.pos-start{justify-content:flex-start; padding-left:4%;}
+  .stone-row.pos-mid{justify-content:center;}
+  .stone-row.pos-end{justify-content:flex-end; padding-right:4%;}
+
+  .stone{
+    border:none;
+    width:64px; height:64px;
+    border-radius:50%;
+    background:var(--card);
+    box-shadow:0 4px 0 var(--shadow);
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:24px;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    transition:transform .12s ease;
+  }
+  .stone:hover{transform:translateY(-2px);}
+  .stone:active{transform:translateY(1px);}
+  .stone.visited{background:var(--leaf); color:white;}
+  .stone.current{box-shadow:0 0 0 4px var(--sunset), 0 4px 0 var(--shadow);}
+  .stone .peek{
+    position:absolute;
+    bottom:-20px;
+    font-size:15px;
+  }
+
+  /* ---------------- LETTER CARD ---------------- */
+  .card{
+    background:var(--card);
+    border-radius:24px;
+    padding:26px;
+    box-shadow:0 5px 0 var(--shadow);
+    display:none;
+  }
+  .card.open{display:block;}
+  .card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .card-top button{
+    border:none;
+    background:none;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:#5b6b4f;
+    cursor:pointer;
+  }
+  .card-nav{display:flex; gap:8px;}
+  .card-nav button{
+    background:var(--teal);
+    color:white;
+    width:34px; height:34px;
+    border-radius:50%;
+    font-size:16px;
+  }
+
+  .card-body{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:26px;
+    align-items:center;
+  }
+  @media (max-width:600px){ .card-body{grid-template-columns:1fr;} }
+
+  .showcase{text-align:center;}
+  .showcase .letter-big{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(64px,13vw,100px);
+    color:var(--sunset);
+    line-height:1;
+  }
+  .showcase .animal-emoji{font-size:56px; display:block; margin-top:6px;}
+  .showcase .animal-name{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600;
+    font-size:19px;
+    margin-top:4px;
+  }
+  .hear-btn{
+    margin-top:12px;
+    border:none;
+    background:var(--teal);
+    color:white;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:9px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15);
+  }
+
+  .match-drill h3{
+    font-family:'Baloo 2', sans-serif;
+    font-size:15px;
+    margin:0 0 10px;
+    color:#5b6b4f;
+    text-align:center;
+  }
+  .match-target{
+    text-align:center;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:44px;
+    color:var(--deepgreen);
+    margin-bottom:10px;
+  }
+  .match-options{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .match-options button{
+    width:58px; height:58px;
+    border-radius:14px;
+    border:none;
+    background:var(--khaki);
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:24px;
+    cursor:pointer;
+    box-shadow:0 3px 0 var(--shadow);
+  }
+  .match-options button.right{background:var(--leaf); color:white;}
+  .match-options button.wrong{background:#d9694a; color:white;}
+  .match-feedback{
+    text-align:center;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    margin-top:10px;
+    min-height:20px;
+    color:var(--deepgreen);
+  }
+
+  /* ---------------- MEMORY GAME ---------------- */
+  .memory{
+    background:var(--card);
+    border-radius:24px;
+    padding:24px;
+    box-shadow:0 5px 0 var(--shadow);
+    display:none;
+  }
+  .memory.open{display:block;}
+  .memory-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .memory-top h2{
+    font-family:'Baloo 2', sans-serif;
+    font-size:18px;
+    margin:0;
+    color:var(--deepgreen);
+  }
+  .memory-stats{font-family:'Baloo 2', sans-serif; font-weight:600; font-size:13px; color:#5b6b4f;}
+  .memory-reset{
+    border:none;
+    background:var(--sunset);
+    color:white;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:8px 14px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .memory-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:10px;
+  }
+  @media (max-width:480px){ .memory-grid{grid-template-columns:repeat(4, 1fr); gap:7px;} }
+  .mem-card{
+    aspect-ratio:1;
+    border-radius:14px;
+    border:none;
+    cursor:pointer;
+    background:var(--deepgreen);
+    box-shadow:0 3px 0 var(--shadow);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:clamp(18px,4vw,26px);
+    color:transparent;
+    transition:transform .18s ease, background .18s ease, color .18s ease;
+  }
+  .mem-card.flipped, .mem-card.matched{
+    background:var(--card);
+    color:var(--ink);
+    box-shadow:inset 0 0 0 3px #dfd6b6;
+  }
+  .mem-card.matched{background:#dff2d0; color:var(--deepgreen);}
+  .mem-card:disabled{cursor:default;}
+  .win-banner{
+    text-align:center;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    color:var(--deepgreen);
+    margin-top:16px;
+    font-size:16px;
+    display:none;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <span class="mascot" aria-hidden="true">🦜</span>
+      <div>
+        <h1>Letter Safari Trail</h1>
+        <p>Follow the path through the jungle, one letter at a time.</p>
+      </div>
+    </div>
+    <nav class="modes" role="tablist" aria-label="Mode">
+      <button id="tab-trail" class="active" role="tab" aria-selected="true">Trail</button>
+      <button id="tab-memory" role="tab" aria-selected="false">Memory Match</button>
+    </nav>
+  </header>
+
+  <div class="progress-strip" id="progress-strip">
+    <span>0 / 26 visited</span>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <section id="trail" class="trail" aria-label="Letter trail"></section>
+
+  <section id="card" class="card" aria-live="polite">
+    <div class="card-top">
+      <button id="back-btn">&larr; Back to trail</button>
+      <div class="card-nav">
+        <button id="prev-btn" aria-label="Previous letter">&larr;</button>
+        <button id="next-btn" aria-label="Next letter">&rarr;</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="showcase">
+        <div class="letter-big" id="letter-big"></div>
+        <span class="animal-emoji" id="animal-emoji"></span>
+        <div class="animal-name" id="animal-name"></div>
+        <button class="hear-btn" id="hear-btn">🔊 Hear it</button>
+      </div>
+      <div class="match-drill">
+        <h3>Tap the matching lowercase letter</h3>
+        <div class="match-target" id="match-target"></div>
+        <div class="match-options" id="match-options"></div>
+        <div class="match-feedback" id="match-feedback"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="memory" class="memory" aria-label="Memory match game">
+    <div class="memory-top">
+      <h2>Match the capital to its twin</h2>
+      <div class="memory-stats" id="memory-stats">Moves: 0 &nbsp;|&nbsp; Pairs: 0 / 6</div>
+      <button class="memory-reset" id="memory-reset">New game</button>
+    </div>
+    <div class="memory-grid" id="memory-grid"></div>
+    <div class="win-banner" id="win-banner">You found every pair! 🎉</div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var DATA = [
+    ["A","Ant","🐜"], ["B","Bear","🐻"], ["C","Camel","🐫"], ["D","Dolphin","🐬"],
+    ["E","Eagle","🦅"], ["F","Fox","🦊"], ["G","Giraffe","🦒"], ["H","Hippo","🦛"],
+    ["I","Iguana","🦎"], ["J","Jaguar","🐆"], ["K","Koala","🐨"], ["L","Llama","🦙"],
+    ["M","Monkey","🐵"], ["N","Nest","🪺"], ["O","Owl","🦉"], ["P","Panda","🐼"],
+    ["Q","Queen Bee","🐝"], ["R","Rabbit","🐰"], ["S","Snake","🐍"], ["T","Tiger","🐯"],
+    ["U","Unicorn","🦄"], ["V","Volcano","🌋"], ["W","Wolf","🐺"],
+    ["X","X-ray Fish","🐠"], ["Y","Yak","🐃"], ["Z","Zebra","🦓"]
+  ];
+
+  var visited = {};
+  var currentIndex = 0;
+  var trailEl = document.getElementById("trail");
+  var cardEl = document.getElementById("card");
+  var memoryEl = document.getElementById("memory");
+  var tabTrail = document.getElementById("tab-trail");
+  var tabMemory = document.getElementById("tab-memory");
+  var progressFill = document.getElementById("progress-fill");
+  var progressStrip = document.getElementById("progress-strip");
+
+  var positions = ["pos-start","pos-mid","pos-end"];
+
+  DATA.forEach(function(item, i){
+    var row = document.createElement("div");
+    row.className = "stone-row " + positions[i % 3];
+    var stone = document.createElement("button");
+    stone.className = "stone";
+    stone.innerHTML = item[0] + '<span class="peek">' + item[2] + '</span>';
+    stone.setAttribute("aria-label", item[0] + " is for " + item[1]);
+    stone.addEventListener("click", function(){ openCard(i); });
+    row.appendChild(stone);
+    trailEl.appendChild(row);
+  });
+
+  function refreshTrail(){
+    var stones = trailEl.querySelectorAll(".stone");
+    var count = 0;
+    stones.forEach(function(s, i){
+      s.classList.toggle("visited", !!visited[i]);
+      s.classList.toggle("current", i === currentIndex && cardEl.classList.contains("open"));
+      if (visited[i]) count++;
+    });
+    var pct = Math.round((count / DATA.length) * 100);
+    progressFill.style.width = pct + "%";
+    progressStrip.querySelector("span").textContent = count + " / " + DATA.length + " visited";
+  }
+  refreshTrail();
+
+  function showTrailMode(){
+    tabTrail.classList.add("active"); tabTrail.setAttribute("aria-selected","true");
+    tabMemory.classList.remove("active"); tabMemory.setAttribute("aria-selected","false");
+    memoryEl.classList.remove("open");
+    trailEl.style.display = "flex";
+    progressStrip.style.display = "flex";
+    if (cardWasOpen) cardEl.classList.add("open");
+  }
+  var cardWasOpen = false;
+
+  function showMemoryMode(){
+    tabMemory.classList.add("active"); tabMemory.setAttribute("aria-selected","true");
+    tabTrail.classList.remove("active"); tabTrail.setAttribute("aria-selected","false");
+    trailEl.style.display = "none";
+    progressStrip.style.display = "none";
+    cardWasOpen = cardEl.classList.contains("open");
+    cardEl.classList.remove("open");
+    memoryEl.classList.add("open");
+    if (!memoryStarted) startMemoryGame();
+  }
+
+  tabTrail.addEventListener("click", showTrailMode);
+  tabMemory.addEventListener("click", showMemoryMode);
+
+  // ---------------- Letter card ----------------
+  var letterBig = document.getElementById("letter-big");
+  var animalEmoji = document.getElementById("animal-emoji");
+  var animalName = document.getElementById("animal-name");
+  var matchTarget = document.getElementById("match-target");
+  var matchOptions = document.getElementById("match-options");
+  var matchFeedback = document.getElementById("match-feedback");
+
+  function openCard(i){
+    currentIndex = i;
+    visited[i] = true;
+    var item = DATA[i];
+    letterBig.textContent = item[0];
+    animalEmoji.textContent = item[2];
+    animalName.textContent = item[0] + " is for " + item[1];
+    trailEl.style.display = "none";
+    cardEl.classList.add("open");
+    refreshTrail();
+    buildMatchDrill(item[0]);
+    speak(item[0] + ". " + item[0] + " is for " + item[1] + ".");
+  }
+
+  document.getElementById("back-btn").addEventListener("click", function(){
+    cardEl.classList.remove("open");
+    trailEl.style.display = "flex";
+  });
+  document.getElementById("prev-btn").addEventListener("click", function(){
+    openCard((currentIndex - 1 + DATA.length) % DATA.length);
+  });
+  document.getElementById("next-btn").addEventListener("click", function(){
+    openCard((currentIndex + 1) % DATA.length);
+  });
+  document.getElementById("hear-btn").addEventListener("click", function(){
+    var item = DATA[currentIndex];
+    speak(item[0] + ". " + item[0] + " is for " + item[1] + ".");
+  });
+
+  function speak(text){
+    if (!("speechSynthesis" in window)) return;
+    try{
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.85; u.pitch = 1.05;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function buildMatchDrill(letter){
+    matchTarget.textContent = letter;
+    matchFeedback.textContent = "";
+    var correct = letter.toLowerCase();
+    var pool = [correct];
+    while (pool.length < 3){
+      var candidate = DATA[Math.floor(Math.random() * DATA.length)][0].toLowerCase();
+      if (pool.indexOf(candidate) === -1) pool.push(candidate);
+    }
+    pool = shuffle(pool);
+    matchOptions.innerHTML = "";
+    pool.forEach(function(opt){
+      var btn = document.createElement("button");
+      btn.textContent = opt;
+      btn.addEventListener("click", function(){
+        var buttons = matchOptions.querySelectorAll("button");
+        buttons.forEach(function(b){ b.disabled = true; });
+        if (opt === correct){
+          btn.classList.add("right");
+          matchFeedback.textContent = "That's it! " + letter + " and " + correct + " are a pair. 🎉";
+        } else {
+          btn.classList.add("wrong");
+          buttons.forEach(function(b){ if (b.textContent === correct) b.classList.add("right"); });
+          matchFeedback.textContent = "Close! The match for " + letter + " is " + correct + ".";
+        }
+      });
+      matchOptions.appendChild(btn);
+    });
+  }
+
+  // ---------------- Memory game ----------------
+  var memoryGrid = document.getElementById("memory-grid");
+  var memoryStats = document.getElementById("memory-stats");
+  var winBanner = document.getElementById("win-banner");
+  var memoryStarted = false;
+  var flippedCards = [];
+  var lockBoard = false;
+  var moves = 0;
+  var pairsFound = 0;
+  var PAIR_COUNT = 6;
+
+  function startMemoryGame(){
+    memoryStarted = true;
+    moves = 0;
+    pairsFound = 0;
+    flippedCards = [];
+    lockBoard = false;
+    winBanner.style.display = "none";
+    memoryStats.textContent = "Moves: 0  |  Pairs: 0 / " + PAIR_COUNT;
+
+    var chosen = shuffle(DATA).slice(0, PAIR_COUNT);
+    var cards = [];
+    chosen.forEach(function(item, idx){
+      cards.push({ pairId: idx, label: item[0], type: "upper" });
+      cards.push({ pairId: idx, label: item[0].toLowerCase(), type: "lower" });
+    });
+    cards = shuffle(cards);
+
+    memoryGrid.innerHTML = "";
+    cards.forEach(function(cardData, i){
+      var btn = document.createElement("button");
+      btn.className = "mem-card";
+      btn.textContent = cardData.label;
+      btn.dataset.pairId = cardData.pairId;
+      btn.dataset.index = i;
+      btn.setAttribute("aria-label", "Memory card");
+      btn.addEventListener("click", function(){ flipCard(btn, cardData); });
+      memoryGrid.appendChild(btn);
+    });
+  }
+
+  function flipCard(btn, cardData){
+    if (lockBoard || btn.classList.contains("flipped") || btn.classList.contains("matched")) return;
+    btn.classList.add("flipped");
+    flippedCards.push({ btn: btn, data: cardData });
+
+    if (flippedCards.length === 2){
+      moves++;
+      lockBoard = true;
+      var a = flippedCards[0], b = flippedCards[1];
+      var isMatch = a.data.pairId === b.data.pairId;
+      setTimeout(function(){
+        if (isMatch){
+          a.btn.classList.add("matched");
+          b.btn.classList.add("matched");
+          pairsFound++;
+          speak(a.data.label.toUpperCase() + " matches " + b.data.label.toLowerCase() + "!");
+          if (pairsFound === PAIR_COUNT){
+            winBanner.style.display = "block";
+          }
+        } else {
+          a.btn.classList.remove("flipped");
+          b.btn.classList.remove("flipped");
+        }
+        flippedCards = [];
+        lockBoard = false;
+        memoryStats.textContent = "Moves: " + moves + "  |  Pairs: " + pairsFound + " / " + PAIR_COUNT;
+      }, isMatch ? 450 : 800);
+    }
+  }
+
+  document.getElementById("memory-reset").addEventListener("click", startMemoryGame);
+
+})();
+</script>
+</body>
+</html>
